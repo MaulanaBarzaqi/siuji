@@ -1,0 +1,19 @@
+.env
+.idea/
+.vscode/
+.DS_Store
+/bin/
+/vendor/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# build
+/dist
+
+# OS files
+Thumbs.db
+Desktop.ini

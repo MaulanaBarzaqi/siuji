@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: siuji_db
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - siuji_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U siuji_user -d siuji_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: siuji_backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - siuji_network
+    volumes:
+      - ./backend:/app
+      - /app/go/pkg/mod
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: siuji_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - siuji_network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+networks:
+  siuji_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

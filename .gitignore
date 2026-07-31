@@ -1,0 +1,12 @@
+# Environment Variables
+.env
+**/backend/.env
+
+# Docker volumes / data lokal
+postgres_data/
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
