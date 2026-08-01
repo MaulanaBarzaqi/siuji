@@ -55,7 +55,17 @@ func getUserIDFromContext(ctx fiber.Ctx) (uint, error) {
 	return userID, nil
 }
 
-
+// Login godoc
+// @Summary      User login
+// @Description  Authenticate user with email and password
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body LoginRequest true "Login credentials"
+// @Success      200 {object} map[string]interface{} "Successful login"
+// @Failure      400 {object} map[string]interface{} "Invalid request"
+// @Failure      401 {object} map[string]interface{} "Unauthorized"
+// @Router       /api/v1/auth/login [post]
 func (c *AuthController) Login(ctx fiber.Ctx) error {
 	var req LoginRequest
 	if err := ctx.Bind().Body(&req); err != nil {
@@ -79,6 +89,17 @@ func (c *AuthController) Login(ctx fiber.Ctx) error {
 	return utils.Success(ctx, message, response)
 }
 
+// SetupCredential godoc
+// @Summary      Setup initial credentials
+// @Description  Setup new name, email, and password for first-time login users
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body SetupCredentialRequest true "New credentials data"
+// @Success      200 {object} map[string]interface{} "Credential setup successful"
+// @Failure      400 {object} map[string]interface{} "Bad request / setup failed"
+// @Failure      401 {object} map[string]interface{} "Unauthorized"
+// @Router       /api/v1/auth/setup-credential [post]
 func (c *AuthController) SetupCredential(ctx fiber.Ctx) error {
 	var req SetupCredentialRequest
 	if err := ctx.Bind().Body(&req); err != nil {
@@ -98,6 +119,17 @@ func (c *AuthController) SetupCredential(ctx fiber.Ctx) error {
 	return utils.Success(ctx, "Credential account setup successfully, please relogin.", response)
 }
 
+// ForgotPassword godoc
+// @Summary      Request password reset OTP
+// @Description  Send an OTP verification code to the registered email
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body ForgotPasswordRequest true "User email"
+// @Success      200 {object} map[string]interface{} "OTP sent successfully"
+// @Failure      400 {object} map[string]interface{} "Invalid request"
+// @Failure      500 {object} map[string]interface{} "Internal server error"
+// @Router       /api/v1/auth/forgot-password [post]
 func (c *AuthController) ForgotPassword(ctx fiber.Ctx) error {
 	var req ForgotPasswordRequest
 	if err := ctx.Bind().Body(&req); err != nil {
@@ -116,6 +148,17 @@ func (c *AuthController) ForgotPassword(ctx fiber.Ctx) error {
 	return utils.Success(ctx, "OTP verification code has been sent to your email.", response)
 }
 
+// VerifyOTP godoc
+// @Summary      Verify OTP code
+// @Description  Verify the OTP code sent to email for password reset
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body VerifyOTPRequest true "OTP code"
+// @Success      200 {object} map[string]interface{} "OTP verified successfully"
+// @Failure      400 {object} map[string]interface{} "Verification failed"
+// @Failure      401 {object} map[string]interface{} "Unauthorized"
+// @Router       /api/v1/auth/verify-otp [post]
 func (c *AuthController) VerifyOTP(ctx fiber.Ctx) error {
 	var req VerifyOTPRequest
 	if err := ctx.Bind().Body(&req); err != nil {
@@ -135,6 +178,17 @@ func (c *AuthController) VerifyOTP(ctx fiber.Ctx) error {
 	return utils.Success(ctx, "OTP verified. Please set your new password.", response)
 }
 
+// ResetPassword godoc
+// @Summary      Reset password
+// @Description  Reset user password using new password after OTP verification
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body ResetPasswordRequest true "New password details"
+// @Success      200 {object} map[string]interface{} "Password reset successful"
+// @Failure      400 {object} map[string]interface{} "Reset failed"
+// @Failure      401 {object} map[string]interface{} "Unauthorized"
+// @Router       /api/v1/auth/reset-password [post]
 func (c *AuthController) ResetPassword(ctx fiber.Ctx) error {
 	var req ResetPasswordRequest
 	if err := ctx.Bind().Body(&req); err != nil {
@@ -153,6 +207,17 @@ func (c *AuthController) ResetPassword(ctx fiber.Ctx) error {
 	return utils.SuccessNoData(ctx, "Password reset successfully. Please login with your new password.")
 }
 
+// ChangePassword godoc
+// @Summary      Change password
+// @Description  Change current user password by providing old and new password
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body ChangePasswordRequest true "Old and new password"
+// @Success      200 {object} map[string]interface{} "Password changed successfully"
+// @Failure      400 {object} map[string]interface{} "Change failed"
+// @Failure      401 {object} map[string]interface{} "Unauthorized"
+// @Router       /api/v1/auth/change-password [post]
 func (c *AuthController) ChangePassword(ctx fiber.Ctx) error {
 	var req ChangePasswordRequest
 	if err := ctx.Bind().Body(&req); err != nil {
@@ -172,6 +237,15 @@ func (c *AuthController) ChangePassword(ctx fiber.Ctx) error {
 	return utils.Success(ctx, "Password changed successfully.", nil)
 }
 
+// GetMe godoc
+// @Summary      Get current user profile
+// @Description  Retrieve logged-in user profile details
+// @Tags         Auth
+// @Produce      json
+// @Success      200 {object} map[string]interface{} "User profile retrieved"
+// @Failure      401 {object} map[string]interface{} "Unauthorized"
+// @Failure      404 {object} map[string]interface{} "User not found"
+// @Router       /api/v1/auth/me [get]
 func (c *AuthController) GetMe(ctx fiber.Ctx) error {
 	userID, err := getUserIDFromContext(ctx)
 	if err != nil {
@@ -186,6 +260,13 @@ func (c *AuthController) GetMe(ctx fiber.Ctx) error {
 	return utils.Success(ctx, "User profile retrieved successfully.", response)
 }
 
+// Logout godoc
+// @Summary      User logout
+// @Description  Clear authentication cookies and log out user
+// @Tags         Auth
+// @Produce      json
+// @Success      200 {object} map[string]interface{} "Logout successful"
+// @Router       /api/v1/auth/logout [post]
 func (c *AuthController) Logout(ctx fiber.Ctx) error {
 	utils.ClearAuthCookies(ctx)
 	return utils.Success(ctx, "Logout successfully.", nil)
