@@ -15,7 +15,6 @@ func SetupRoutes(
 	auth := app.Group("/api/v1/auth")
 	auth.Post("/login", ac.Login)
 	auth.Post("/forgot-password", ac.ForgotPassword)
-	auth.Post("/setup-credential", middleware.TempAuth(utils.PurposeSetupCredential), ac.SetupCredential)
 	auth.Post("/verify-otp", middleware.TempAuth(utils.PurposeVerifyEmail), ac.VerifyOTP)
 	auth.Post("/reset-password", middleware.TempAuth(utils.PurposeResetPassword), ac.ResetPassword)
 	auth.Post("/change-password", middleware.JWTAuth(), ac.ChangePassword)

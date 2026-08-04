@@ -29,7 +29,6 @@ func SeedAdmin() {
 		Email: "adminsiuji@siuji.com",
 		Password: password,
 		Role: "admin",
-		IsFirstLogin: true,
 	}
 
 	if err := config.DB.FirstOrCreate(&admin, models.User{Email: admin.Email}).Error; err != nil {

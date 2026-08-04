@@ -21,13 +21,6 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-type SetupCredentialRequest struct {
-	NewName               string `json:"new_name"`
-	NewEmail           string `json:"new_email"`
-	NewPassword        string `json:"new_password"`
-	ConfirmNewPassword string `json:"confirm_new_password"`
-}
-
 type ForgotPasswordRequest struct {
 	Email string `json:"email"`
 }
@@ -81,42 +74,7 @@ func (c *AuthController) Login(ctx fiber.Ctx) error {
 		utils.SetAuthCookies(ctx, response.AccessToken, response.RefreshToken)
 	}
 
-	message := "Login successfully. Welcome to the dashboard."
-	if response.User != nil && response.User.IsFirstLogin != nil && *response.User.IsFirstLogin {
-		message = "Login successfully, please setup your credential account."
-	}
-
-	return utils.Success(ctx, message, response)
-}
-
-// SetupCredential godoc
-// @Summary      Setup initial credentials
-// @Description  Setup new name, email, and password for first-time login users
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        request body SetupCredentialRequest true "New credentials data"
-// @Success      200 {object} map[string]interface{} "Credential setup successful"
-// @Failure      400 {object} map[string]interface{} "Bad request / setup failed"
-// @Failure      401 {object} map[string]interface{} "Unauthorized"
-// @Router       /api/v1/auth/setup-credential [post]
-func (c *AuthController) SetupCredential(ctx fiber.Ctx) error {
-	var req SetupCredentialRequest
-	if err := ctx.Bind().Body(&req); err != nil {
-		return utils.BadRequest(ctx, "Invalid request", err.Error())
-	}
-
-	userID, err := getUserIDFromContext(ctx)
-	if err != nil {
-		return utils.Unauthorized(ctx, "Unauthorized", err.Error())
-	}
-
-	response, err := c.service.SetupCredential(userID, req.NewName, req.NewEmail, req.NewPassword, req.ConfirmNewPassword)
-	if err != nil {
-		return utils.BadRequest(ctx, "Setup credential failed", err.Error())
-	}
-
-	return utils.Success(ctx, "Credential account setup successfully, please relogin.", response)
+	return utils.Success(ctx, "Login successfully. Welcome to the dashboard.", response)
 }
 
 // ForgotPassword godoc

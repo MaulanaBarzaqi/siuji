@@ -15,7 +15,6 @@ const (
 
 type AuthService interface {
 	Login(email, password string) (*AuthResponse, error)
-	SetupCredential(userID uint, newName, newEmail, newPassword, confirmNewPassword string) (*AuthResponse, error)
 	ForgotPassword(email string) (*AuthResponse, error)
 	VerifyOTP(userID uint, otpCode string) (*AuthResponse, error)
 	ResetPassword(userID uint, newPassword, confirmNewPassword string) error
@@ -42,12 +41,13 @@ func NewAuthService(
 }
 
 type UserResponse struct {
-	PublicID     string    `json:"public_id"`
-	Name         string    `json:"name"`
-	Email        string    `json:"email"`
-	Role         string    `json:"role"`
-	IsFirstLogin *bool     `json:"is_first_login,omitempty"`
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	PublicID   string    `json:"public_id"`
+	Name       string    `json:"name"`
+	Email      string    `json:"email"`
+	Role       string    `json:"role"`
+	Nim        string    `json:"nim,omitempty"`
+	University string    `json:"university,omitempty"`
+	UpdatedAt  time.Time `json:"updated_at,omitempty"`
 }
 
 type AuthResponse struct {
@@ -58,19 +58,16 @@ type AuthResponse struct {
 	User         *UserResponse `json:"user,omitempty"`
 }
 
-func buildUserResponse(user *models.User, includeFirstLogin bool) *UserResponse {
-	res := &UserResponse{
-		PublicID:  user.PublicId.String(),
-		Name:      user.Name,
-		Email:     user.Email,
-		Role:      user.Role,
-		UpdatedAt: user.UpdatedAt,
+func buildUserResponse(user *models.User) *UserResponse {
+	return &UserResponse{
+		PublicID:  	user.PublicId.String(),
+		Name:      	user.Name,
+		Email:     	user.Email,
+		Role:      	user.Role,
+		Nim: 	   	user.Nim,
+		University: user.University,
+		UpdatedAt: 	user.UpdatedAt,
 	}
-
-	if includeFirstLogin {
-		res.IsFirstLogin = &user.IsFirstLogin
-	}
-	return res
 }
 
 
@@ -82,17 +79,6 @@ func (s *authService) Login(email, password string) (*AuthResponse, error) {
 	user, err := s.userRepo.FindByEmail(email)
 	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
 		return nil, errors.New("invalid credentials")
-	}
-	if user.IsFirstLogin {
-		tempToken, err := utils.GenerateTempToken(user.ID, user.Email, utils.PurposeSetupCredential, TempTokenExpiryMinutes)
-		if err != nil {
-			return nil, errors.New("failed to generate temp token")
-		}
-		return &AuthResponse{
-			TempToken: tempToken,
-			ExpiresIn: TempTokenExpiryMinutes * 60,
-			User:      buildUserResponse(user, true),
-		}, nil
 	}
 	accessToken, err := utils.GenerateAccessToken(user.ID, user.PublicId, user.Email, user.Role)
 	if err != nil {
@@ -108,50 +94,7 @@ func (s *authService) Login(email, password string) (*AuthResponse, error) {
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    AccessTokenExpiryHours * 3600,
-		User:         buildUserResponse(user, false),
-	}, nil
-}
-
-func (s *authService) SetupCredential(userID uint, newName, newEmail, newPassword, confirmNewPassword string) (*AuthResponse, error) {
-	if newName == "" || newEmail == "" {
-		return nil, errors.New("name and email are required")
-	}
-	if err := utils.ValidatePassword(newPassword, confirmNewPassword); err != nil {
-		return nil, err
-	}
-
-	user, err := s.userRepo.FindByID(userID)
-	if err != nil {
-		return nil, errors.New("user not found")
-	}
-	if !user.IsFirstLogin {
-		return nil, errors.New("credential already setup")
-	}
-	if newEmail != user.Email && s.userRepo.EmailExists(newEmail) {
-		return nil, errors.New("email already in use")
-	}
-
-	hashedPassword, err := utils.HashPassword(newPassword)
-	if err != nil {
-		return nil, errors.New("failed to hash password")
-	}
-	if err := s.userRepo.UpdateProfile(userID, newName, newEmail); err != nil {
-		return nil, errors.New("failed to update profile")
-	}
-	if err := s.userRepo.UpdatePassword(userID, hashedPassword); err != nil {
-		return nil, errors.New("failed to update password")
-	}
-	if err := s.userRepo.UpdateFirstLogin(userID); err != nil {
-		return nil, errors.New("failed to update first login status")
-	}
-
-	updatedUser, err := s.userRepo.FindByID(userID)
-	if err != nil {
-		return nil, errors.New("failed to get updated user")
-	}
-
-	return &AuthResponse{
-		User: buildUserResponse(updatedUser, true),
+		User:         buildUserResponse(user),
 	}, nil
 }
 
@@ -263,5 +206,5 @@ func (s *authService) GetMe(userID uint) (*UserResponse, error) {
 		return nil, errors.New("user not found")
 	}
 
-	return buildUserResponse(user, false), nil
+	return buildUserResponse(user), nil
 }

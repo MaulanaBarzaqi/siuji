@@ -16,7 +16,6 @@ type UserRepository interface {
 	Update(user *models.User) error
 	UpdateProfile(userID uint, name, email string) error
 	UpdatePassword(userID uint, hashedPassword string) error
-	UpdateFirstLogin(userID uint) error
 	GetAllPagination(filter, sort string, limit, offset int) ([]models.User, int64, error)
 	Delete(userID uint) error
 	EmailExists(email string) bool
@@ -86,11 +85,6 @@ func (r *userRepository) UpdatePassword(userID uint, hashedPassword string) erro
 		Where("id = ?", userID).Update("password", hashedPassword).Error
 }
 
-func (r *userRepository) UpdateFirstLogin(userID uint) error {
-	return config.DB.Model(&models.User{}).
-		Where("id = ?", userID).Update("is_first_login", false).Error
-}
-
 func (r *userRepository) GetAllPagination(filter, sort string, limit, offset int) ([]models.User,int64, error)  {
 	if limit <= 0 {
 		limit = 10 
@@ -106,21 +100,24 @@ func (r *userRepository) GetAllPagination(filter, sort string, limit, offset int
 	db := config.DB.Model(&models.User{})
 	if filter != "" {
 		filterPattern := "%" + filter + "%"
-		db = db.Where("name ILIKE ? OR email ILIKE ?", filterPattern, filterPattern)
+		// Diperluas agar bisa memfilter berdasarkan nama, email, nim, atau kampus
+		db = db.Where("name ILIKE ? OR email ILIKE ? OR nim ILIKE ? OR university_name ILIKE ?", filterPattern, filterPattern, filterPattern, filterPattern)
 	}
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 	allowedSortFields := map[string]string{
-		"id": "id ASC",
-		"-id": "id DESC",
-		"name": "name ASC",
-		"-name": "name DESC",
-		"email": "email ASC",
-		"-email": "email DESC",
-		"role": "role ASC",
-		"-role": "role DESC",
-		"created_at": "created_at ASC",
+		"id":          "id ASC",
+		"-id":         "id DESC",
+		"name":        "name ASC",
+		"-name":       "name DESC",
+		"email":       "email ASC",
+		"-email":      "email DESC",
+		"nim":         "nim ASC",
+		"-nim":        "nim DESC",
+		"role":        "role ASC",
+		"-role":       "role DESC",
+		"created_at":  "created_at ASC",
 		"-created_at": "created_at DESC",
 	}
 	if sort == "" {

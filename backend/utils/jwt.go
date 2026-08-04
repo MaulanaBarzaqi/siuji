@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	PurposeSetupCredential = "setup_credential"
 	PurposeVerifyEmail = "verify_email"
 	PurposeResetPassword = "reset_password"
 )
@@ -97,7 +96,6 @@ func GenerateTempToken(userID uint, email, purpose string, expiryMinutes int) (s
 		return "", errors.New("JWT_SECRET required")
 	}
 	validPurposes := map[string]bool{
-		PurposeSetupCredential: true,
 		PurposeVerifyEmail: true,
 		PurposeResetPassword: true,
 	}
