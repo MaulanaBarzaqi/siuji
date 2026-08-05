@@ -269,55 +269,6 @@
                 }
             }
         },
-        "/api/v1/auth/setup-credential": {
-            "post": {
-                "description": "Setup new name, email, and password for first-time login users",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Setup initial credentials",
-                "parameters": [
-                    {
-                        "description": "New credentials data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.SetupCredentialRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Credential setup successful",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request / setup failed",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/auth/verify-otp": {
             "post": {
                 "description": "Verify the OTP code sent to email for password reset",
@@ -406,23 +357,6 @@
             "type": "object",
             "properties": {
                 "confirm_new_password": {
-                    "type": "string"
-                },
-                "new_password": {
-                    "type": "string"
-                }
-            }
-        },
-        "controllers.SetupCredentialRequest": {
-            "type": "object",
-            "properties": {
-                "confirm_new_password": {
-                    "type": "string"
-                },
-                "new_email": {
-                    "type": "string"
-                },
-                "new_name": {
                     "type": "string"
                 },
                 "new_password": {

@@ -28,17 +28,6 @@ definitions:
       new_password:
         type: string
     type: object
-  controllers.SetupCredentialRequest:
-    properties:
-      confirm_new_password:
-        type: string
-      new_email:
-        type: string
-      new_name:
-        type: string
-      new_password:
-        type: string
-    type: object
   controllers.VerifyOTPRequest:
     properties:
       otp_code:
@@ -225,39 +214,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Reset password
-      tags:
-      - Auth
-  /api/v1/auth/setup-credential:
-    post:
-      consumes:
-      - application/json
-      description: Setup new name, email, and password for first-time login users
-      parameters:
-      - description: New credentials data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.SetupCredentialRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Credential setup successful
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request / setup failed
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Setup initial credentials
       tags:
       - Auth
   /api/v1/auth/verify-otp:
