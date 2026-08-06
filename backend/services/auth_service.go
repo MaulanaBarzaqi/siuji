@@ -45,7 +45,7 @@ type UserResponse struct {
 	Name       string    `json:"name"`
 	Email      string    `json:"email"`
 	Role       string    `json:"role"`
-	Nim        string    `json:"nim,omitempty"`
+	NIM        string    `json:"nim,omitempty"`
 	University string    `json:"university,omitempty"`
 	UpdatedAt  time.Time `json:"updated_at,omitempty"`
 }
@@ -64,7 +64,7 @@ func buildUserResponse(user *models.User) *UserResponse {
 		Name:      	user.Name,
 		Email:     	user.Email,
 		Role:      	user.Role,
-		Nim: 	   	user.Nim,
+		NIM: 	   	user.NIM,
 		University: user.University,
 		UpdatedAt: 	user.UpdatedAt,
 	}

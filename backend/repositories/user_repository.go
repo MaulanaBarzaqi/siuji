@@ -13,6 +13,7 @@ type UserRepository interface {
 	FindByPublicID(publicID string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
 	Create(user *models.User) error
+	CreateBulk(users []models.User) error
 	Update(user *models.User) error
 	UpdateProfile(userID uint, name, email string) error
 	UpdatePassword(userID uint, hashedPassword string) error
@@ -66,6 +67,18 @@ func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 
 func (r *userRepository) Create(user *models.User) error {
 	return config.DB.Create(user).Error
+}
+
+func (r *userRepository) CreateBulk(users []models.User) error {
+	return config.DB.Transaction(func(tx *gorm.DB) error {
+		if len(users) == 0 {
+			return nil
+		}
+		if err := tx.CreateInBatches(&users, 100).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (r *userRepository) Update(user *models.User) error {

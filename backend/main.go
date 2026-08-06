@@ -42,9 +42,11 @@ func main() {
 	// services
 	emailService := services.NewEmailService()
 	authService := services.NewAuthService(userRepo, otpRepo, emailService)
+	userService := services.NewUserService(userRepo)
 
 	// controllers
 	authController := controllers.NewAuthController(authService)
+	userController := controllers.NewUserController(userService)
 
 	app := fiber.New()
 
@@ -60,7 +62,7 @@ func main() {
 		})
 	})
 
-	routes.SetupRoutes(app, authController)
+	routes.SetupRoutes(app, authController, userController)
 
 	port := config.AppConfig.Port
 	log.Printf("server is running on port:%s", port)

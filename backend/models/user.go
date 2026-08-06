@@ -13,7 +13,7 @@ type User struct {
 	Name			string			`json:"name" gorm:"not null"`
 	Email			string			`json:"email" gorm:"unique;not null"`
 	University		string			`json:"university" gorm:"default:null"`
-	Nim				string 			`json:"nim" gorm:"uniqueIndex;default:null"`
+	NIM				string 			`json:"nim" gorm:"uniqueIndex;default:null"`
 	Password		string			`json:"-" gorm:"column:password;not null"`
 	Role			string			`json:"role" gorm:"default:participant;not null"`
 	CreatedAt 		time.Time 		`json:"created_at"`
