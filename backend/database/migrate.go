@@ -8,14 +8,16 @@ import (
 
 var MigrationRegistry = []interface{} {
 	&models.User{},
-	&models.OTP{},
-	&models.ExamPeriod{},
-	&models.ExamSection{},
-	&models.Question{},
-	&models.Option{},
+	&models.Period{},
+	&models.Section{},
 	&models.ScoreConversion{},
-	&models.ExamResult{},
-	&models.ExamResultSection{},
+	&models.OTP{},
+	&models.PeriodSection{},
+	&models.Question{},
+	&models.ParticipantPeriod{},
+	&models.Option{},
+	&models.SectionScore{},
+	&models.AnswerKey{},
 	&models.ParticipantAnswer{},
 }
 

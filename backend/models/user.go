@@ -19,4 +19,7 @@ type User struct {
 	CreatedAt 		time.Time 		`json:"created_at"`
 	UpdatedAt 		time.Time 		`json:"updated_at"`
 	DeletedAt 		gorm.DeletedAt 	`json:"-" gorm:"index"`
+
+	// Relations
+	ParticipantPeriods []ParticipantPeriod `json:"participant_periods,omitempty" gorm:"foreignKey:UserID"`
 }
