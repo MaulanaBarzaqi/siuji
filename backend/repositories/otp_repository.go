@@ -16,10 +16,12 @@ type OTPRepository interface {
 	DeleteExpired() error
 }
 
-type otpRepository struct{}
+type otpRepository struct{
+	db *gorm.DB
+}
 
-func NewOTPRepository() OTPRepository {
-	return &otpRepository{}
+func NewOTPRepository(db *gorm.DB) OTPRepository {
+	return &otpRepository{db: db}
 }
 
 func (r *otpRepository) Create(otp *models.OTP) error {

@@ -36,17 +36,15 @@ func main() {
 	seed.SeedAdmin()
 
 	// repositories
-	userRepo := repositories.NewUserRepository()
-	otpRepo := repositories.NewOTPRepository()
+	userRepo := repositories.NewUserRepository(config.DB)
+	otpRepo := repositories.NewOTPRepository(config.DB)
 
 	// services
 	emailService := services.NewEmailService()
 	authService := services.NewAuthService(userRepo, otpRepo, emailService)
-	userService := services.NewUserService(userRepo)
 
 	// controllers
 	authController := controllers.NewAuthController(authService)
-	userController := controllers.NewUserController(userService)
 
 	app := fiber.New()
 
@@ -62,7 +60,7 @@ func main() {
 		})
 	})
 
-	routes.SetupRoutes(app, authController, userController)
+	routes.SetupRoutes(app, authController)
 
 	port := config.AppConfig.Port
 	log.Printf("server is running on port:%s", port)

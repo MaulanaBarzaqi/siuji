@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"siuji-backend/config"
 	"siuji-backend/models"
 
 	"gorm.io/gorm"
@@ -12,26 +11,22 @@ type UserRepository interface {
 	FindByID(id uint) (*models.User, error)
 	FindByPublicID(publicID string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
-	Create(user *models.User) error
-	CreateBulk(users []models.User) error
-	Update(user *models.User) error
-	UpdateProfile(userID uint, name, email string) error
 	UpdatePassword(userID uint, hashedPassword string) error
-	GetAllPagination(filter, sort string, limit, offset int) ([]models.User, int64, error)
-	Delete(userID uint) error
-	EmailExists(email string) bool
-	EmailExistsExceptUser(email string, userID uint) bool
+	FindAllPagination(filter, sort string, limit, offset int) ([]models.User, int64, error)
+	Delete(publicID string) error
 }
 
-type userRepository struct {}
+type userRepository struct {
+	db *gorm.DB
+}
 
-func NewUserRepository() UserRepository {
-	return &userRepository{}
+func NewUserRepository(db *gorm.DB) UserRepository {
+	return &userRepository{db: db}
 }
 
 func (r *userRepository) FindByID(id uint) (*models.User, error) {
 	var user models.User
-	err := config.DB.First(&user, id).Error
+	err := r.db.First(&user, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -43,7 +38,7 @@ func (r *userRepository) FindByID(id uint) (*models.User, error) {
 
 func (r *userRepository) FindByPublicID(publicID string) (*models.User, error) {
 	var user models.User
-	err := config.DB.Where("public_id = ?", publicID).First(&user).Error
+	err := r.db.Where("public_id = ?", publicID).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -55,7 +50,7 @@ func (r *userRepository) FindByPublicID(publicID string) (*models.User, error) {
 
 func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
-	err := config.DB.Where("email = ?", email).First(&user).Error
+	err := r.db.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -65,40 +60,12 @@ func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *userRepository) Create(user *models.User) error {
-	return config.DB.Create(user).Error
-}
-
-func (r *userRepository) CreateBulk(users []models.User) error {
-	return config.DB.Transaction(func(tx *gorm.DB) error {
-		if len(users) == 0 {
-			return nil
-		}
-		if err := tx.CreateInBatches(&users, 100).Error; err != nil {
-			return err
-		}
-		return nil
-	})
-}
-
-func (r *userRepository) Update(user *models.User) error {
-	return config.DB.Save(user).Error
-}
-
-func (r *userRepository) UpdateProfile(userID uint, name, email string) error {
-	return config.DB.Model(&models.User{}).Where("id = ?", userID).Updates(
-		map[string]interface{}{
-			"name": name,
-			"email": email,
-	}).Error
-}
-
 func (r *userRepository) UpdatePassword(userID uint, hashedPassword string) error {
-	return config.DB.Model(&models.User{}).
+	return r.db.Model(&models.User{}).
 		Where("id = ?", userID).Update("password", hashedPassword).Error
 }
 
-func (r *userRepository) GetAllPagination(filter, sort string, limit, offset int) ([]models.User,int64, error)  {
+func (r *userRepository) FindAllPagination(filter, sort string, limit, offset int) ([]models.User,int64, error)  {
 	if limit <= 0 {
 		limit = 10 
 	}
@@ -110,11 +77,11 @@ func (r *userRepository) GetAllPagination(filter, sort string, limit, offset int
 	}
 	var users []models.User
 	var total int64
-	db := config.DB.Model(&models.User{})
+	db := r.db.Model(&models.User{})
 	if filter != "" {
 		filterPattern := "%" + filter + "%"
 		// Diperluas agar bisa memfilter berdasarkan nama, email, nim, atau kampus
-		db = db.Where("name ILIKE ? OR email ILIKE ? OR nim ILIKE ? OR university_name ILIKE ?", filterPattern, filterPattern, filterPattern, filterPattern)
+		db = db.Where("name ILIKE ? OR email ILIKE ? OR nim ILIKE ? OR university ILIKE ?", filterPattern, filterPattern, filterPattern, filterPattern)
 	}
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -148,20 +115,18 @@ func (r *userRepository) GetAllPagination(filter, sort string, limit, offset int
 	return users, total, err
 }
 
-func (r *userRepository) Delete(userID uint) error {
-	return config.DB.Delete(&models.User{}, userID).Error
+func (r *userRepository) Delete(publicID string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var user models.User
+		if err := tx.Where("public_id = ?", publicID).First(&user).Error; err != nil {
+			return err
+		}
+		// Hapus juga relasi participant_periods milik user ini agar tidak menjadi orphaned data
+		if err := tx.Where("user_id = ?", user.ID).Delete(&models.ParticipantPeriod{}).Error; err != nil {
+			return err
+		}
+		// Hapus user (GORM otomatis menangani soft delete jika field DeletedAt ada pada model User)
+		return tx.Delete(&user).Error
+	})
 }
             
-func (r *userRepository) EmailExists(email string) bool {
-	var count int64
-	config.DB.Model(&models.User{}).Where("email = ?", email).Count(&count)
-	return count > 0
-}
-
-func (r *userRepository) EmailExistsExceptUser(email string, userID uint) bool {
-	var count int64
-	config.DB.Model(&models.User{}).
-		Where("email = ? AND id != ?", email, userID).
-		Count(&count)
-	return count > 0
-}
