@@ -38,13 +38,17 @@ func main() {
 	// repositories
 	userRepo := repositories.NewUserRepository(config.DB)
 	otpRepo := repositories.NewOTPRepository(config.DB)
-
+	periodRepo := repositories.NewPeriodRepository(config.DB)
+	sectionRepo := repositories.NewSectionRepository(config.DB)
+	
 	// services
 	emailService := services.NewEmailService()
 	authService := services.NewAuthService(userRepo, otpRepo, emailService)
+	periodService := services.NewPeriodService(periodRepo, sectionRepo)
 
 	// controllers
 	authController := controllers.NewAuthController(authService)
+	periodController := controllers.NewPeriodController(periodService)
 
 	app := fiber.New()
 
@@ -60,7 +64,7 @@ func main() {
 		})
 	})
 
-	routes.SetupRoutes(app, authController)
+	routes.SetupRoutes(app, authController, periodController)
 
 	port := config.AppConfig.Port
 	log.Printf("server is running on port:%s", port)
