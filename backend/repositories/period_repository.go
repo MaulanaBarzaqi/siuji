@@ -9,7 +9,7 @@ import (
 
 type PeriodRepository interface {
 	Create(period *models.Period) error
-	FindAll() ([]models.Period, error)
+	FindAllPagination(filter, sort string, limit, offset int) ([]models.Period, int64, error)
 	FindByPublicID(publicID string) (*models.Period, error)
 	Update(period *models.Period) error
 	Delete(publicID string) error
@@ -39,10 +39,29 @@ func (r *periodRepository) Create(period *models.Period) error {
 	return r.db.Create(period).Error
 }
 
-func (r *periodRepository) FindAll() ([]models.Period, error) {
+func (r *periodRepository) FindAllPagination(filter, sort string, limit, offset int) ([]models.Period, int64, error) {
 	var periods []models.Period
-	err := r.db.Preload("PeriodSections.Section").Find(&periods).Error
-	return periods, err
+	var totalData int64
+
+	query := r.db.Model(&models.Period{})
+	
+	// Filter sederhana jika ada
+	if filter != "" {
+		query = query.Where("title ILIKE ? OR status ILIKE ?", "%"+filter+"%", "%"+filter+"%")
+	}
+	// Hitung total data
+	if err := query.Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
+	// Sorting
+	if sort != "" {
+		query = query.Order(sort)
+	} else {
+		query = query.Order("created_at DESC")
+	}
+	// Paginasi & Preload
+	err := query.Limit(limit).Offset(offset).Preload("PeriodSections.Section").Find(&periods).Error
+	return periods, totalData, err
 }
 
 func (r *periodRepository) FindByPublicID(publicID string) (*models.Period, error) {
