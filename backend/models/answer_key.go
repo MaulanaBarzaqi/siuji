@@ -14,3 +14,10 @@ type AnswerKey struct {
 	Option   Option   `json:"option,omitempty" gorm:"foreignKey:OptionID"`
 	Question Question `json:"question,omitempty" gorm:"foreignKey:QuestionID"`
 }
+
+type AnswerKeyResponse struct {
+	PublicID              string    `json:"public_id"`
+	QuestionPublicID      string    `json:"question_public_id"`
+	CorrectOptionPublicID string    `json:"correct_option_public_id"`
+	UpdatedAt             time.Time `json:"updated_at"`
+}

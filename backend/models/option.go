@@ -17,3 +17,10 @@ type Option struct {
 	AnswerKeys         []AnswerKey         `json:"answer_keys,omitempty" gorm:"foreignKey:OptionID"`
 	ParticipantAnswers []ParticipantAnswer `json:"participant_answers,omitempty" gorm:"foreignKey:OptionID"`
 }
+
+type OptionResponse struct {
+	PublicID   string `json:"public_id"`
+	Label      string `json:"label"`
+	OptionText string `json:"option_text"`
+	Position   int    `json:"position"`
+}

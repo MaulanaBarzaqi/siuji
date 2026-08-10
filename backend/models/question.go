@@ -20,3 +20,14 @@ type Question struct {
 	AnswerKeys         []AnswerKey         `json:"answer_keys,omitempty" gorm:"foreignKey:QuestionID"`
 	ParticipantAnswers []ParticipantAnswer `json:"participant_answers,omitempty" gorm:"foreignKey:QuestionID"`
 }
+
+type QuestionDetailResponse struct {
+	PublicID              string           `json:"public_id"`
+	Question              string           `json:"question"`
+	AudioURL              *string          `json:"audio_url"`
+	ImageURL              *string          `json:"image_url"`
+	Passage               *string          `json:"passage"`
+	Position              int              `json:"position"`
+	CorrectOptionPublicID *string          `json:"correct_option_public_id"`
+	Options               []OptionResponse `json:"options"`
+}

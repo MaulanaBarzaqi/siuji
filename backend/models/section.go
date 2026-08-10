@@ -14,3 +14,15 @@ type Section struct {
 	Questions      []Question      `json:"questions,omitempty" gorm:"foreignKey:SectionID"`
 	SectionScores  []SectionScore  `json:"section_scores,omitempty" gorm:"foreignKey:SectionID"`
 }
+
+type SectionRequest struct {
+	Title string `json:"title" validate:"required"`
+}
+
+type SectionDetailResponse struct {
+	PublicID  string                   `json:"public_id"`
+	Title     string                   `json:"title"`
+	Questions []QuestionDetailResponse `json:"questions"`
+	CreatedAt time.Time                `json:"created_at"`
+	UpdatedAt time.Time                `json:"updated_at"`
+}
