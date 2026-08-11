@@ -12,6 +12,7 @@ func SetupRoutes(
 	app *fiber.App,
 	ac *controllers.AuthController,
 	pc *controllers.PeriodController,
+	sc *controllers.SectionController,
 ) {
 	auth := app.Group("/api/v1/auth")
 	auth.Post("/login", ac.Login)
@@ -30,7 +31,17 @@ func SetupRoutes(
 	periods.Delete("/:period_public_id", pc.DeletePeriod)
 	periods.Post("/:period_public_id/sections", pc.AddSectionToPeriod)
 	periods.Delete("/:period_public_id/sections/:section_public_id", pc.RemoveSectionFromPeriod)
-	periods.Put("/:period_public_id/sections/sections/reorder", pc.ReorderSections)
+	periods.Put("/:period_public_id/questions/reorder", pc.ReorderSections)
 	
-	
+	sections := app.Group("/api/v1/sections", middleware.JWTAuth(), middleware.RequireRole("admin"))
+	sections.Post("/", sc.CreateSection)
+	sections.Get("/", sc.GetAllSections)
+	sections.Get("/:section_public_id", sc.GetSectionByPublicID)
+	sections.Put("/:section_public_id", sc.UpdateSection)
+	sections.Delete("/:section_public_id", sc.DeleteSection)
+	sections.Put("/:section_public_id/questions/reorder", sc.ReorderQuestions)
+
+	questions := app.Group("/api/v1/questions", middleware.JWTAuth(), middleware.RequireRole("admin"))
+	questions.Put("/:question_public_id/answer-key", sc.UpsertAnswerKey)
+	questions.Put("/:question_public_id/options/reorder", sc.ReorderOptions)
 }
