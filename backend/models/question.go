@@ -21,6 +21,13 @@ type Question struct {
 	ParticipantAnswers []ParticipantAnswer `json:"participant_answers,omitempty" gorm:"foreignKey:QuestionID"`
 }
 
+type QuestionRequest struct {
+	Question string `json:"question" validate:"required"`
+	AudioURL *string `json:"audio_url"`
+	ImageURL *string `json:"image_url"`
+	Passage	 *string `json:"passage"`
+}
+
 type QuestionDetailResponse struct {
 	PublicID              string           `json:"public_id"`
 	Question              string           `json:"question"`
