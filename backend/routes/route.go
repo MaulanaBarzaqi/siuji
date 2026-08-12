@@ -13,6 +13,7 @@ func SetupRoutes(
 	ac *controllers.AuthController,
 	pc *controllers.PeriodController,
 	sc *controllers.SectionController,
+	qc *controllers.QuestionController,
 ) {
 	auth := app.Group("/api/v1/auth")
 	auth.Post("/login", ac.Login)
@@ -40,8 +41,11 @@ func SetupRoutes(
 	sections.Put("/:section_public_id", sc.UpdateSection)
 	sections.Delete("/:section_public_id", sc.DeleteSection)
 	sections.Put("/:section_public_id/questions/reorder", sc.ReorderQuestions)
+	sections.Post("/:section_public_id/questions", qc.CreateQuestion)
 
 	questions := app.Group("/api/v1/questions", middleware.JWTAuth(), middleware.RequireRole("admin"))
 	questions.Put("/:question_public_id/answer-key", sc.UpsertAnswerKey)
 	questions.Put("/:question_public_id/options/reorder", sc.ReorderOptions)
+	questions.Put("/:question_public_id", qc.UpdateQuestion)
+	questions.Delete("/:question_public_id", qc.DeleteQuestion)
 }
