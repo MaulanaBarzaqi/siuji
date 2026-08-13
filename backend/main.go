@@ -41,6 +41,7 @@ func main() {
 	periodRepo := repositories.NewPeriodRepository(config.DB)
 	sectionRepo := repositories.NewSectionRepository(config.DB)
 	questionRepo := repositories.NewQuestionRepository(config.DB)
+	optionRepo := repositories.NewOptionRepository(config.DB)
 
 	// services
 	emailService := services.NewEmailService()
@@ -48,12 +49,14 @@ func main() {
 	periodService := services.NewPeriodService(periodRepo, sectionRepo)
 	sectionService := services.NewSectionService(sectionRepo)
 	questionService := services.NewQuestionService(questionRepo, sectionRepo)
+	optionService := services.NewOptionService(optionRepo, questionRepo)
 
 	// controllers
 	authController := controllers.NewAuthController(authService)
 	periodController := controllers.NewPeriodController(periodService)
 	sectionController := controllers.NewSectionController(sectionService)
 	questionController := controllers.NewQuestionController(questionService)
+	optionController := controllers.NewOptionController(optionService)
 
 	app := fiber.New()
 
@@ -69,7 +72,7 @@ func main() {
 		})
 	})
 
-	routes.SetupRoutes(app, authController, periodController, sectionController, questionController)
+	routes.SetupRoutes(app, authController, periodController, sectionController, questionController, optionController)
 
 	port := config.AppConfig.Port
 	log.Printf("server is running on port:%s", port)
