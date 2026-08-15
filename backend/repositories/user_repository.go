@@ -8,12 +8,14 @@ import (
 )
 
 type UserRepository interface {
+	Create(user *models.User) error
 	FindByID(id uint) (*models.User, error)
 	FindByPublicID(publicID string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
 	UpdatePassword(userID uint, hashedPassword string) error
 	FindAllPagination(filter, sort string, limit, offset int) ([]models.User, int64, error)
 	Delete(publicID string) error
+	Update(user *models.User) error
 }
 
 type userRepository struct {
@@ -22,6 +24,10 @@ type userRepository struct {
 
 func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db: db}
+}
+
+func (r *userRepository) Create(user *models.User) error {
+	return r.db.Create(user).Error
 }
 
 func (r *userRepository) FindByID(id uint) (*models.User, error) {
@@ -130,3 +136,6 @@ func (r *userRepository) Delete(publicID string) error {
 	})
 }
             
+func (r *userRepository) Update(user *models.User) error {
+	return r.db.Save(user).Error
+}

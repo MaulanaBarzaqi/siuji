@@ -24,7 +24,7 @@ func SeedAdmin() {
 	}
 
 	admin := models.User{
-		PublicId: uuid.New(),
+		PublicID: uuid.New(),
 		Name: "admin siuji",
 		Email: "adminsiuji@siuji.com",
 		Password: password,

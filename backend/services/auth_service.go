@@ -5,7 +5,6 @@ import (
 	"siuji-backend/models"
 	"siuji-backend/repositories"
 	"siuji-backend/utils"
-	"time"
 )
 
 const (
@@ -14,12 +13,12 @@ const (
 )
 
 type AuthService interface {
-	Login(email, password string) (*AuthResponse, error)
-	ForgotPassword(email string) (*AuthResponse, error)
-	VerifyOTP(userID uint, otpCode string) (*AuthResponse, error)
+	Login(email, password string) (*models.AuthResponse, error)
+	ForgotPassword(email string) (*models.AuthResponse, error)
+	VerifyOTP(userID uint, otpCode string) (*models.AuthResponse, error)
 	ResetPassword(userID uint, newPassword, confirmNewPassword string) error
 	ChangePassword(userID uint, oldPassword, newPassword, confirmNewPassword string) error
-	GetMe(userID uint) (*UserResponse, error)
+	GetMe(userID uint) (*models.UserResponse, error)
 }
 
 type authService struct {
@@ -40,38 +39,7 @@ func NewAuthService(
 	}
 }
 
-type UserResponse struct {
-	PublicID   string    `json:"public_id"`
-	Name       string    `json:"name"`
-	Email      string    `json:"email"`
-	Role       string    `json:"role"`
-	NIM        string    `json:"nim,omitempty"`
-	University string    `json:"university,omitempty"`
-	UpdatedAt  time.Time `json:"updated_at,omitempty"`
-}
-
-type AuthResponse struct {
-	TempToken    string        `json:"temp_token,omitempty"`
-	AccessToken  string        `json:"access_token,omitempty"`
-	RefreshToken string        `json:"refresh_token,omitempty"`
-	ExpiresIn    int           `json:"expires_in,omitempty"`
-	User         *UserResponse `json:"user,omitempty"`
-}
-
-func buildUserResponse(user *models.User) *UserResponse {
-	return &UserResponse{
-		PublicID:  	user.PublicId.String(),
-		Name:      	user.Name,
-		Email:     	user.Email,
-		Role:      	user.Role,
-		NIM: 	   	user.NIM,
-		University: user.University,
-		UpdatedAt: 	user.UpdatedAt,
-	}
-}
-
-
-func (s *authService) Login(email, password string) (*AuthResponse, error) {
+func (s *authService) Login(email, password string) (*models.AuthResponse, error) {
 	if email == "" || password == "" {
 		return nil, errors.New("email and password are required")
 	}
@@ -80,7 +48,7 @@ func (s *authService) Login(email, password string) (*AuthResponse, error) {
 	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
 		return nil, errors.New("invalid credentials")
 	}
-	accessToken, err := utils.GenerateAccessToken(user.ID, user.PublicId, user.Email, user.Role)
+	accessToken, err := utils.GenerateAccessToken(user.ID, user.PublicID, user.Email, user.Role)
 	if err != nil {
 		return nil, errors.New("failed to generate access token")
 	}
@@ -90,15 +58,15 @@ func (s *authService) Login(email, password string) (*AuthResponse, error) {
 		return nil, errors.New("failed to generate refresh token")
 	}
 
-	return &AuthResponse{
+	return &models.AuthResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    AccessTokenExpiryHours * 3600,
-		User:         buildUserResponse(user),
+		User:         user.ToResponse(),
 	}, nil
 }
 
-func (s *authService) ForgotPassword(email string) (*AuthResponse, error) {
+func (s *authService) ForgotPassword(email string) (*models.AuthResponse, error) {
 	// SECURITY: Blind Response (Mencegah Account Enumeration)
 	user, err := s.userRepo.FindByEmail(email)
 	if err != nil {
@@ -124,13 +92,13 @@ func (s *authService) ForgotPassword(email string) (*AuthResponse, error) {
 		return nil, errors.New("failed to generate temp token")
 	}
 
-	return &AuthResponse{
+	return &models.AuthResponse{
 		TempToken: tempToken,
 		ExpiresIn: TempTokenExpiryMinutes * 60,
 	}, nil
 }
 
-func (s *authService) VerifyOTP(userID uint, otpCode string) (*AuthResponse, error) {
+func (s *authService) VerifyOTP(userID uint, otpCode string) (*models.AuthResponse, error) {
 	if otpCode == "" {
 		return nil, errors.New("OTP code is required")
 	}
@@ -149,7 +117,7 @@ func (s *authService) VerifyOTP(userID uint, otpCode string) (*AuthResponse, err
 	if err != nil {
 		return nil, errors.New("failed to generate temp token")
 	}
-	return &AuthResponse{
+	return &models.AuthResponse{
 		TempToken: newTempToken,
 		ExpiresIn: TempTokenExpiryMinutes * 60,
 	}, nil
@@ -200,11 +168,11 @@ func (s *authService) ChangePassword(userID uint, oldPassword, newPassword, conf
 	return s.userRepo.UpdatePassword(userID, hashedPassword)
 }
 
-func (s *authService) GetMe(userID uint) (*UserResponse, error) {
+func (s *authService) GetMe(userID uint) (*models.UserResponse, error) {
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
 
-	return buildUserResponse(user), nil
+	return user.ToResponse(), nil
 }
