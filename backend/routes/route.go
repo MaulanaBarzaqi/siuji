@@ -15,6 +15,7 @@ func SetupRoutes(
 	sc *controllers.SectionController,
 	qc *controllers.QuestionController,
 	oc *controllers.OptionController,
+	uc *controllers.UserController,
 ) {
 	auth := app.Group("/api/v1/auth")
 	auth.Post("/login", ac.Login)
@@ -54,4 +55,9 @@ func SetupRoutes(
 	options := app.Group("/api/v1/options", middleware.JWTAuth(), middleware.RequireRole("admin"))
 	options.Put("/:option_public_id", oc.UpdateOption)
 	options.Delete("/:option_public_id", oc.DeleteOption)
+
+	users := app.Group("api/v1/users", middleware.JWTAuth(), middleware.RequireRole("admin"))
+	users.Get("/", uc.GetAllUsers)
+	users.Get("/:user_public_id", uc.GetUserByPublicID)
+	users.Delete("/:user_public_id", uc.DeleteUser)
 }

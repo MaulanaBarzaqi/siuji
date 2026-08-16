@@ -50,6 +50,7 @@ func main() {
 	sectionService := services.NewSectionService(sectionRepo)
 	questionService := services.NewQuestionService(questionRepo, sectionRepo)
 	optionService := services.NewOptionService(optionRepo, questionRepo)
+	userService := services.NewUserService(userRepo)
 
 	// controllers
 	authController := controllers.NewAuthController(authService)
@@ -57,6 +58,7 @@ func main() {
 	sectionController := controllers.NewSectionController(sectionService)
 	questionController := controllers.NewQuestionController(questionService)
 	optionController := controllers.NewOptionController(optionService)
+	userController := controllers.NewUserController(userService)
 
 	app := fiber.New()
 
@@ -72,7 +74,15 @@ func main() {
 		})
 	})
 
-	routes.SetupRoutes(app, authController, periodController, sectionController, questionController, optionController)
+	routes.SetupRoutes(
+		app, 
+		authController, 
+		periodController, 
+		sectionController, 
+		questionController, 
+		optionController,
+		userController,
+	)
 
 	port := config.AppConfig.Port
 	log.Printf("server is running on port:%s", port)
