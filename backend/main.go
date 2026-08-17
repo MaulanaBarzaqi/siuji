@@ -42,6 +42,7 @@ func main() {
 	sectionRepo := repositories.NewSectionRepository(config.DB)
 	questionRepo := repositories.NewQuestionRepository(config.DB)
 	optionRepo := repositories.NewOptionRepository(config.DB)
+	participantRepo := repositories.NewParticipantRepository(config.DB)
 
 	// services
 	emailService := services.NewEmailService()
@@ -51,6 +52,7 @@ func main() {
 	questionService := services.NewQuestionService(questionRepo, sectionRepo)
 	optionService := services.NewOptionService(optionRepo, questionRepo)
 	userService := services.NewUserService(userRepo)
+	participantService := services.NewParticipantService(participantRepo, userRepo, periodRepo)
 
 	// controllers
 	authController := controllers.NewAuthController(authService)
@@ -59,6 +61,7 @@ func main() {
 	questionController := controllers.NewQuestionController(questionService)
 	optionController := controllers.NewOptionController(optionService)
 	userController := controllers.NewUserController(userService)
+	participantController := controllers.NewParticipantController(participantService)
 
 	app := fiber.New()
 
@@ -81,6 +84,7 @@ func main() {
 		sectionController, 
 		questionController, 
 		optionController,
+		participantController,
 		userController,
 	)
 

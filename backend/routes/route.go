@@ -15,6 +15,7 @@ func SetupRoutes(
 	sc *controllers.SectionController,
 	qc *controllers.QuestionController,
 	oc *controllers.OptionController,
+	pac *controllers.ParticipantController,
 	uc *controllers.UserController,
 ) {
 	auth := app.Group("/api/v1/auth")
@@ -35,7 +36,13 @@ func SetupRoutes(
 	periods.Post("/:period_public_id/sections", pc.AddSectionToPeriod)
 	periods.Delete("/:period_public_id/sections/:section_public_id", pc.RemoveSectionFromPeriod)
 	periods.Put("/:period_public_id/questions/reorder", pc.ReorderSections)
-	
+	periods.Post("/:period_public_id/participants", pac.AddParticipantToPeriod)
+	periods.Get("/:period_public_id/participants", pac.GetParticipantByPeriod)
+	periods.Get("/:period_public_id/participants/:user_public_id", pac.GetParticipantDetail)
+	periods.Put("/:period_public_id/participants/:user_public_id", pac.UpdateParticipant)
+	periods.Delete("/:period_public_id/participants/:user_public_id", pac.RemoveParticipantFromPeriod)
+	periods.Post("/:period_public_id/participants/import", pac.ImportParticipant)
+
 	sections := app.Group("/api/v1/sections", middleware.JWTAuth(), middleware.RequireRole("admin"))
 	sections.Post("/", sc.CreateSection)
 	sections.Get("/", sc.GetAllSections)
