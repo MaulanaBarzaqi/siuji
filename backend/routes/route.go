@@ -35,7 +35,7 @@ func SetupRoutes(
 	periods.Delete("/:period_public_id", pc.DeletePeriod)
 	periods.Post("/:period_public_id/sections", pc.AddSectionToPeriod)
 	periods.Delete("/:period_public_id/sections/:section_public_id", pc.RemoveSectionFromPeriod)
-	periods.Put("/:period_public_id/questions/reorder", pc.ReorderSections)
+	periods.Put("/:period_public_id/sections/reorder", pc.ReorderSections)
 	periods.Post("/:period_public_id/participants", pac.AddParticipantToPeriod)
 	periods.Get("/:period_public_id/participants", pac.GetParticipantByPeriod)
 	periods.Get("/:period_public_id/participants/:user_public_id", pac.GetParticipantDetail)
@@ -63,7 +63,7 @@ func SetupRoutes(
 	options.Put("/:option_public_id", oc.UpdateOption)
 	options.Delete("/:option_public_id", oc.DeleteOption)
 
-	users := app.Group("api/v1/users", middleware.JWTAuth(), middleware.RequireRole("admin"))
+	users := app.Group("/api/v1/users", middleware.JWTAuth(), middleware.RequireRole("admin"))
 	users.Get("/", uc.GetAllUsers)
 	users.Get("/:user_public_id", uc.GetUserByPublicID)
 	users.Delete("/:user_public_id", uc.DeleteUser)

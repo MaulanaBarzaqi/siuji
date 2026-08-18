@@ -95,7 +95,7 @@ func (c *ParticipantController) GetParticipantByPeriod(ctx fiber.Ctx) error {
 	offset := (page - 1) * limit
 	participant, totalData, err := c.service.GetParticipantsByPeriod(periodPublicID, filter, sort, limit, offset)
 		if err != nil {
-		return utils.InternalServerError(ctx, "failed to fetch users", err.Error())
+		return utils.InternalServerError(ctx, "failed to fetch participant", err.Error())
 	}
 	totalPages := int((totalData + int64(limit) - 1) / int64(limit))
 	meta := utils.PaginationMeta{
