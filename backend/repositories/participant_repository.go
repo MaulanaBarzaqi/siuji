@@ -15,6 +15,9 @@ type ParticipantRepository interface {
 	Update(participantPeriod *models.ParticipantPeriod) error
 	RemoveFromPeriod(periodID uint, userID uint) error
 	FindByID(id uint) (*models.ParticipantPeriod, error)
+	// participant side
+	FindByUserID(userID uint) ([]models.ParticipantPeriod, error)
+	FindByPeriodIDAndUserID(periodID, userID uint) (*models.ParticipantPeriod, error)
 }
 
 type participantRepository struct {
@@ -128,4 +131,29 @@ func (r *participantRepository) FindByID(id uint) (*models.ParticipantPeriod, er
 		return nil, err
 	}
 	return &participantPeriod, nil
+}
+
+func (r *participantRepository) FindByUserID(userID uint) ([]models.ParticipantPeriod, error) {
+	var participantPeriods []models.ParticipantPeriod
+    err := r.db.Preload("Period").
+        Where("user_id = ?", userID).
+        Find(&participantPeriods).Error
+    if err != nil {
+        return nil, err
+    }
+    return participantPeriods, nil
+}
+
+func (r *participantRepository) FindByPeriodIDAndUserID(periodID, userID uint) (*models.ParticipantPeriod, error) {
+	var participantPeriod models.ParticipantPeriod
+    err := r.db.Preload("Period").
+        Where("period_id = ? AND user_id = ?", periodID, userID).
+        First(&participantPeriod).Error
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, nil
+        }
+        return nil, err
+    }
+    return &participantPeriod, nil
 }
